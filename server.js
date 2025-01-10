@@ -11,6 +11,41 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+app.post("/generate-example", async (req, res) => {
+  try {
+    const { language } = req.body;
+
+    const response = await axios.post(
+      "https://glhf.chat/api/openai/v1/chat/completions",
+      {
+        model: "hf:deepseek-ai/DeepSeek-V3",
+        messages: [
+          {
+            role: "system",
+            content: `You are a language expert. Create 3 example sentences in ${
+              language === "en" ? "English" : "Indonesian"
+            } for language learners. Make them simple and useful for daily conversation.`,
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer glhf_ef882617166556f06dc68caa8cd36b75`,
+        },
+      }
+    );
+
+    const examples = response.data.choices[0].message.content
+      .split("\n")
+      .filter((line) => line.trim() !== "");
+    res.json({ examples });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failed to generate examples" });
+  }
+});
+
 app.post("/translate", async (req, res) => {
   try {
     const { inputText, language } = req.body;

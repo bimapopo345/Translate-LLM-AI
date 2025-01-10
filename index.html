@@ -43,18 +43,55 @@
 
         <div class="mt-6">
             <h2 class="text-xl font-bold mb-4">Example Text</h2>
-            <p class="mb-2">English: "Good morning, how are you today?"</p>
-            <p class="mb-2">Indonesian: "Selamat pagi, apa kabar hari ini?"</p>
-            <button onclick="speakText('exampleText')"
-                class="mt-2 bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition duration-200">
-                🔊 Play Sound
-            </button>
+            <div id="examplesContainer" class="space-y-2">
+                <button onclick="loadExamples()" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600">
+                    Load Examples
+                </button>
+            </div>
         </div>
-    </div>
 
-    <div id="exampleText" class="hidden">
-        <p>Good morning, how are you today?</p>
-        <p>Selamat pagi, apa kabar hari ini?</p>
+        <script>
+            async function loadExamples() {
+                const language = document.getElementById('language').value;
+                const examplesContainer = document.getElementById('examplesContainer');
+                examplesContainer.innerHTML = '<p>Loading examples...</p>';
+
+                try {
+                    const response = await fetch('/generate-example', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            language: language
+                        })
+                    });
+
+                    const data = await response.json();
+                    examplesContainer.innerHTML = data.examples.map(example => `
+                        <div class="bg-blue-100 p-2 rounded-md">
+                            <p>${example}</p>
+                            <button onclick="speakExample('${example}')" class="mt-1 bg-green-500 text-white px-2 py-1 rounded-md text-sm hover:bg-green-600">
+                                🔊 Play
+                            </button>
+                        </div>
+                    `).join('');
+                } catch (error) {
+                    console.error('Error:', error);
+                    examplesContainer.innerHTML = '<p class="text-red-500">Failed to load examples. Please try again.</p>';
+                }
+            }
+
+            function speakExample(text) {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = document.getElementById('language').value === 'en' ? 'en-US' : 'id-ID';
+                    speechSynthesis.speak(utterance);
+                } else {
+                    alert('Text-to-speech not supported in this browser');
+                }
+            }
+        </script>
     </div>
 
     <script>
@@ -90,8 +127,35 @@
             }
         }
 
+        function fillExample(lang) {
+            const examples = {
+                en: [
+                    "Good morning, how are you today?",
+                    "What is your favorite food?",
+                    "Can you help me with this problem?",
+                    "I would like to order a coffee, please."
+                ],
+                id: [
+                    "Selamat pagi, apa kabar hari ini?",
+                    "Apa makanan favoritmu?",
+                    "Bisakah kamu membantu saya dengan masalah ini?",
+                    "Saya ingin memesan kopi."
+                ]
+            };
+
+            const inputText = document.getElementById('inputText');
+            const languageSelect = document.getElementById('language');
+
+            // Set language
+            languageSelect.value = lang;
+
+            // Get random example
+            const randomIndex = Math.floor(Math.random() * examples[lang].length);
+            inputText.value = examples[lang][randomIndex];
+        }
+
         function speakText(elementId) {
-            const text = document.getElementById(elementId).value || document.getElementById(elementId).innerText;
+            const text = document.getElementById(elementId).value;
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = document.getElementById('language').value === 'en' ? 'en-US' : 'id-ID';
