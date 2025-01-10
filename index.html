@@ -35,7 +35,26 @@
             <label for="outputText" class="block text-sm font-medium text-gray-700">Translated Text</label>
             <textarea id="outputText" rows="4" readonly
                 class="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-gray-100"></textarea>
+            <button onclick="speakText('outputText')"
+                class="mt-2 bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition duration-200">
+                🔊 Play Sound
+            </button>
         </div>
+
+        <div class="mt-6">
+            <h2 class="text-xl font-bold mb-4">Example Text</h2>
+            <p class="mb-2">English: "Good morning, how are you today?"</p>
+            <p class="mb-2">Indonesian: "Selamat pagi, apa kabar hari ini?"</p>
+            <button onclick="speakText('exampleText')"
+                class="mt-2 bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition duration-200">
+                🔊 Play Sound
+            </button>
+        </div>
+    </div>
+
+    <div id="exampleText" class="hidden">
+        <p>Good morning, how are you today?</p>
+        <p>Selamat pagi, apa kabar hari ini?</p>
     </div>
 
     <script>
@@ -68,6 +87,17 @@
             } catch (error) {
                 console.error('Error:', error);
                 outputText.value = 'Translation failed. Please try again.';
+            }
+        }
+
+        function speakText(elementId) {
+            const text = document.getElementById(elementId).value || document.getElementById(elementId).innerText;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = document.getElementById('language').value === 'en' ? 'en-US' : 'id-ID';
+                speechSynthesis.speak(utterance);
+            } else {
+                alert('Text-to-speech not supported in this browser');
             }
         }
     </script>
